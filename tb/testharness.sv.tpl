@@ -677,6 +677,17 @@ module testharness #(
           .iffifo_int_o(iffifo_int_o)
       );
 
+      // PUMA-like programmable accelerator
+      puma_accel #(
+          .reg_req_t(reg_req_t),
+          .reg_rsp_t(reg_rsp_t)
+      ) puma_accel_i (
+          .clk_i,
+          .rst_ni,
+          .reg_req_i(ext_periph_slv_req[testharness_pkg::PUMA_ACCEL_IDX]),
+          .reg_rsp_o(ext_periph_slv_rsp[testharness_pkg::PUMA_ACCEL_IDX])
+      );
+
       addr_decode #(
           .NoIndices(testharness_pkg::EXT_NPERIPHERALS),
           .NoRules(testharness_pkg::EXT_NPERIPHERALS),

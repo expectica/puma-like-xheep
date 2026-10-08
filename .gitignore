@@ -103,3 +103,8 @@ flow/OpenROAD-flow-scripts
 .continue
 private/
 .DS_Store
+# Local PUMA experimental backups
+/puma_backups/
+*.bak
+*.bak_*
+*.before_*

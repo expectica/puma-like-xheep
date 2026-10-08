@@ -1,0 +1,242 @@
+// Simplified PUMA-like accelerator register description.
+//
+// The CPU programs an internal accelerator instruction memory through MMIO,
+// starts the accelerator, and reads status/debug/result information back.
+
+{ name: "puma_accel"
+  clock_primary: "clk_i"
+
+  bus_interfaces: [
+    { protocol: "reg_iface", direction: "device" }
+  ]
+
+  regwidth: "32"
+
+  registers: [
+
+    { name:     "CTRL"
+      desc:     "PUMA accelerator control"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:     "true"
+      fields: [
+        { bits: "0", name: "START", desc: "Start accelerator execution" },
+      ]
+    }
+
+    { name:     "STATUS"
+      desc:     "PUMA accelerator status"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "1:0", name: "FLAGS", desc: "bit 0: DONE, bit 1: BUSY" },
+      ]
+    }
+
+    { name:     "IMEM_ADDR"
+      desc:     "Instruction memory programming address and auto-increment loader base"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:     "true"
+      fields: [
+        { bits: "7:0", name: "ADDR", desc: "Instruction memory word address" },
+      ]
+    }
+
+    { name:     "IMEM_DATA"
+      desc:     "Instruction memory programming data"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "31:0", name: "DATA", desc: "32-bit PUMA-like instruction" },
+      ]
+    }
+
+    { name:     "IMEM_WRITE"
+      desc:     "Instruction memory write control"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "WE", desc: "Write IMEM_DATA to IMEM_ADDR when asserted" },
+      ]
+    }
+
+    { name:     "IMEM_PUSH"
+      desc:     "Auto-increment instruction memory programming data"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:     "true"
+      fields: [
+        { bits: "31:0", name: "DATA", desc: "Write one instruction at the auto-increment loader pointer" },
+      ]
+    }
+
+    { name:     "VREG_SEL"
+      desc:     "Vector register and lane selection for software readback"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "9:0", name: "SEL", desc: "bits 2:0 select vector register, bits 9:8 select lane" },
+      ]
+    }
+
+    { name:     "VREG_DATA"
+      desc:     "Selected vector register lane value"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "15:0", name: "DATA", desc: "Selected 16-bit vector register lane" },
+      ]
+    }
+
+    { name:     "PC"
+      desc:     "Current PUMA program counter for debug"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "7:0", name: "VALUE", desc: "Current program counter" },
+      ]
+    }
+
+    { name:     "IR"
+      desc:     "Current PUMA instruction register for debug"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Current 32-bit instruction" },
+      ]
+    }
+
+    { name:     "PERF_TOTAL_CYCLES"
+      desc:     "Total active PUMA execution cycles"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Cycles from first FETCH through the HALT instruction EXEC cycle" },
+      ]
+    }
+
+    { name:     "PERF_INSTR"
+      desc:     "Number of executed PUMA instructions"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Number of instructions reaching S_EXEC" },
+      ]
+    }
+
+    { name:     "PERF_LOAD_CYCLES"
+      desc:     "Cycles spent in LOAD-specific states"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Cycles in S_LOAD_REQ/S_LOAD_WAIT/S_LOAD_CAPTURE" },
+      ]
+    }
+
+    { name:     "PERF_STORE_CYCLES"
+      desc:     "Cycles spent in STORE-specific states"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Cycles in S_STORE_REQ/S_STORE_WAIT" },
+      ]
+    }
+
+    { name:     "PERF_WSTORE_CYCLES"
+      desc:     "Cycles spent in PISLib weight-programming states"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Cycles in S_WSTORE_REQ" },
+      ]
+    }
+
+    { name:     "PERF_MVM_CYCLES"
+      desc:     "Cycles spent in MVM-specific states"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "31:0", name: "VALUE", desc: "Cycles in S_MVM_START/S_MVM_WAIT" },
+      ]
+    }
+
+    { name:     "IMEM_PROG_BANK"
+      desc:     "Instruction-memory bank targeted by CPU programming writes"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "BANK", desc: "0 selects bank 0, 1 selects bank 1" },
+      ]
+    }
+
+    { name:     "IMEM_EXEC_BANK"
+      desc:     "Instruction-memory bank to latch for the next accelerator START"
+      swaccess: "rw"
+      hwaccess: "hro"
+      fields: [
+        { bits: "0", name: "BANK", desc: "0 selects bank 0, 1 selects bank 1" },
+      ]
+    }
+
+    { name:     "IMEM_ACTIVE_BANK"
+      desc:     "Instruction-memory bank currently latched for execution"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "0", name: "BANK", desc: "Bank currently used by the PUMA fetch path" },
+      ]
+    }
+
+    { name:     "IMEM_PUSH_COMMIT"
+      desc:     "Write the final instruction at the auto-increment pointer and queue that programming bank for automatic execution"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:     "true"
+      fields: [
+        { bits: "31:0", name: "DATA", desc: "Final instruction word; accepted write also commits the selected programming bank" },
+      ]
+    }
+
+
+    { name:     "RESIDENT_PUSH"
+      desc:     "Fast-path resident-kernel input push. Hardware writes IMEM word 0 of the inactive bank and queues that bank for automatic execution."
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:     "true"
+      fields: [
+        { bits: "31:0", name: "DATA", desc: "Replacement resident-kernel word 0, normally a VSET4 instruction" },
+      ]
+    }
+
+    { name:     "RESIDENT_STATUS"
+      desc:     "Resident-kernel fast-path status"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "1:0", name: "FLAGS", desc: "bit 0: READY for RESIDENT_PUSH, bit 1: one next-bank job is queued" },
+      ]
+    }
+
+
+    { name:     "RESIDENT_FIFO_PUSH"
+      desc:     "Iteration 8G enqueue port for the 32-entry resident-input burst FIFO"
+      swaccess: "rw"
+      hwaccess: "hro"
+      hwqe:     "true"
+      fields: [
+        { bits: "31:0", name: "DATA", desc: "Resident-kernel word 0 to enqueue, normally a VSET4 instruction" },
+      ]
+    }
+
+    { name:     "RESIDENT_FIFO_STATUS"
+      desc:     "Iteration 8G resident-input burst FIFO status"
+      swaccess: "ro"
+      hwaccess: "hwo"
+      fields: [
+        { bits: "8:0", name: "FLAGS", desc: "bit 0 READY, bit 1 EMPTY, bit 2 FULL, bits 8:3 FIFO COUNT (0..32)" },
+      ]
+    }
+
+  ]
+}

@@ -69,11 +69,11 @@ package testharness_pkg;
 
   //slave encoder
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
+    localparam EXT_NPERIPHERALS = 8;
+  %else:
     localparam EXT_NPERIPHERALS = 7;
-  %else: 
-    localparam EXT_NPERIPHERALS = 6;  
   %endif
-  
+
   // Memcopy controller (external peripheral example)
   localparam logic [31:0] MEMCOPY_CTRL_START_ADDRESS = core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h0;
   localparam logic [31:0] MEMCOPY_CTRL_SIZE = 32'h10;
@@ -110,6 +110,15 @@ package testharness_pkg;
   localparam logic [31:0] DLC_END_ADDRESS = DLC_START_ADDRESS + DLC_SIZE;
   localparam logic [31:0] DLC_IDX = 32'd5;
 
+  // External PUMA-like programmable accelerator
+  localparam logic [31:0] PUMA_ACCEL_START_ADDRESS =
+      core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS + 32'h07000;
+  localparam logic [31:0] PUMA_ACCEL_SIZE = 32'h1000;
+  localparam logic [31:0] PUMA_ACCEL_END_ADDRESS =
+      PUMA_ACCEL_START_ADDRESS + PUMA_ACCEL_SIZE;
+  localparam logic [31:0] PUMA_ACCEL_IDX = EXT_NPERIPHERALS - 1;
+
+
   % if user_peripheral_domain.contains_peripheral('serial_link_reg'):
     // External SERIAL LINK Peripheral
     localparam logic [31:0] SL_REG_START_ADDRESS= core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS+ 32'h06000;
@@ -141,6 +150,12 @@ package testharness_pkg;
       ,
       '{idx: SL_REG_IDX, start_addr: SL_REG_START_ADDRESS, end_addr: SL_REG_END_ADDRESS}
       %endif
+      ,
+      '{
+          idx: PUMA_ACCEL_IDX,
+          start_addr: PUMA_ACCEL_START_ADDRESS,
+          end_addr: PUMA_ACCEL_END_ADDRESS
+      }
   };
 
   localparam int unsigned EXT_PERIPHERALS_PORT_SEL_WIDTH = EXT_NPERIPHERALS > 1 ? $clog2(

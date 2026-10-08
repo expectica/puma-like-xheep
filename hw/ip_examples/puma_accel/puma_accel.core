@@ -1,0 +1,53 @@
+CAPI=2:
+
+name: "example:ip:puma_accel"
+description: "PUMA-like programmable matrix-vector accelerator"
+
+filesets:
+  files_rtl:
+    depend:
+      - x-heep::packages
+      - xheep:util:reg-generator
+      - pulp-platform.org::common_cells
+      - pulp-platform.org::register_interface
+      - lowrisc:prim:subreg
+    files:
+      - rtl/memory_unit.sv
+      - rtl/pislib/APIM.v
+      - rtl/pis_mvm_backend.sv
+      - rtl/mvm_backend.sv
+      - rtl/mvm_unit.sv
+      - rtl/puma_like_core.sv
+      - rtl/puma_accel.sv
+    file_type: systemVerilogSource
+
+generate:
+  puma_accel:
+    generator: regtool
+    parameters:
+      config:           data/puma_accel.hjson
+      name:             puma_accel
+      rtl_dir:          rtl
+      sw_path:          ../../../sw/device/lib/drivers/puma_accel/puma_accel.h
+      doc_path:         ../../../sw/device/lib/drivers/puma_accel/puma_accel.md
+
+targets:
+  default:
+    filesets:
+      - files_rtl
+    generate:
+      - puma_accel
+
+  lint:
+    default_tool: verilator
+    filesets:
+      - files_rtl
+    generate:
+      - puma_accel
+    toplevel:
+      - puma_accel
+    tools:
+      verilator:
+        mode: lint-only
+        verilator_options:
+          - -Wno-fatal
